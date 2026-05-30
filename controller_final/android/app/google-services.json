@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "431339942942",
+    "project_id": "myremoteapp-2d672",
+    "storage_bucket": "myremoteapp-2d672.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431339942942:android:576f467b5134b4de3f6a0f",
+        "android_client_info": {
+          "package_name": "org.ai.rcontroller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8PaPz0QWx-7rU1G-sZyw6PBjelWtYGB0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431339942942:android:5fa15a13b0422c1f3f6a0f",
+        "android_client_info": {
+          "package_name": "org.ai.rtarget"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8PaPz0QWx-7rU1G-sZyw6PBjelWtYGB0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

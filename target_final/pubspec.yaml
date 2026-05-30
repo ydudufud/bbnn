@@ -1,0 +1,33 @@
+name: target_final
+description: Remote Target
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.10.5
+  record: ^5.1.2
+  device_apps: ^2.2.0
+  geolocator: ^10.1.0
+  path_provider: ^2.1.0
+  firebase_core: ^2.15.0
+  cloud_firestore: ^4.8.0
+  firebase_storage: ^11.2.0
+  flutter_background_service: ^5.0.5
+  permission_handler: ^11.0.0
+  cupertino_icons: ^1.0.2
+
+dependency_overrides:
+  record_platform_interface: 1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
