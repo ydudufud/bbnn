@@ -1,34 +1,140 @@
-name: Build Flutter Apps
+name: Build Flutter Apps with AI Auto-Fix
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
   workflow_dispatch:
+
 jobs:
   build-target:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: '3.22.0', channel: 'stable' }
-      - uses: actions/cache@v4
-        with: { path: '~/.pub-cache', key: '${{ runner.os }}-flutter-target-${{ hashFiles(''target_final/pubspec.lock'') }}' }
-      - name: Create google-services.json
-        run: echo '${{ secrets.GOOGLE_SERVICES_TARGET }}' > target_final/android/app/google-services.json
-      - run: cd target_final && flutter pub get
-      - run: cd target_final && flutter build apk --release
-      - uses: actions/upload-artifact@v4
-        with: { name: Target_App_Firestore, path: target_final/build/app/outputs/flutter-apk/app-release.apk }
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      - name: Cache Flutter
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-target-${{ hashFiles('target_final/pubspec.lock') }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            target_final/android/.gradle
+          key: ${{ runner.os }}-gradle-target-${{ hashFiles('target_final/android/**/*.gradle*') }}
+
+      - name: Build target APK
+        id: build
+        run: |
+          cd target_final
+          flutter pub get
+          flutter build apk --release 2>&1 | tee ../build.log
+        continue-on-error: true
+
+      - name: Check build result
+        run: |
+          if grep -q "BUILD FAILED" build.log; then
+            echo "FAILED=true" >> $GITHUB_ENV
+          else
+            echo "FAILED=false" >> $GITHUB_ENV
+          fi
+
+      - name: AI Auto-Fix on failure
+        if: env.FAILED == 'true'
+        run: python3 ai_fix.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Push fixes if any
+        if: env.FAILED == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "[AI Fix] automatic patch"
+            git push
+          fi
+
+      - name: Upload APK (if success)
+        if: env.FAILED == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Target_App_Firestore
+          path: target_final/build/app/outputs/flutter-apk/app-release.apk
+
   build-controller:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: '3.22.0', channel: 'stable' }
-      - uses: actions/cache@v4
-        with: { path: '~/.pub-cache', key: '${{ runner.os }}-flutter-controller-${{ hashFiles(''controller_final/pubspec.lock'') }}' }
-      - name: Create google-services.json
-        run: echo '${{ secrets.GOOGLE_SERVICES_CONTROLLER }}' > controller_final/android/app/google-services.json
-      - run: cd controller_final && flutter pub get
-      - run: cd controller_final && flutter build apk --release
-      - uses: actions/upload-artifact@v4
-        with: { name: Controller_App_Firestore, path: controller_final/build/app/outputs/flutter-apk/app-release.apk }
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+
+      - name: Cache Flutter
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-controller-${{ hashFiles('controller_final/pubspec.lock') }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            controller_final/android/.gradle
+          key: ${{ runner.os }}-gradle-controller-${{ hashFiles('controller_final/android/**/*.gradle*') }}
+
+      - name: Build controller APK
+        id: build
+        run: |
+          cd controller_final
+          flutter pub get
+          flutter build apk --release 2>&1 | tee ../build.log
+        continue-on-error: true
+
+      - name: Check build result
+        run: |
+          if grep -q "BUILD FAILED" build.log; then
+            echo "FAILED=true" >> $GITHUB_ENV
+          else
+            echo "FAILED=false" >> $GITHUB_ENV
+          fi
+
+      - name: AI Auto-Fix on failure
+        if: env.FAILED == 'true'
+        run: python3 ai_fix.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Push fixes if any
+        if: env.FAILED == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "[AI Fix] automatic patch"
+            git push
+          fi
+
+      - name: Upload APK (if success)
+        if: env.FAILED == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Controller_App_Firestore
+          path: controller_final/build/app/outputs/flutter-apk/app-release.apk
